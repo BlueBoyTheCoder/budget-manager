@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  postgres-db:
+    image: postgres:17-alpine
+    container_name: budget-postgres
+    environment:
+      POSTGRES_DB: budget_db
+      POSTGRES_USER: budget_user
+      POSTGRES_PASSWORD: budget_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
