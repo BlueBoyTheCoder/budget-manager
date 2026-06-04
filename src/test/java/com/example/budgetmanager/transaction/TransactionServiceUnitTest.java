@@ -37,9 +37,9 @@ class TransactionServiceUnitTest {
     void shouldIncreaseAccountBalanceWhenCreatingIncomeTransaction() {
         // Given
         Account account = new Account(1L, "Main Account", new BigDecimal("1000.00"));
-        Category category = new Category(2L, "Salary");
+        Category category = new Category(2L, "Salary", null);
 
-        TransactionDto inputDto = new TransactionDto(null, new BigDecimal("500.00"), TransactionType.INCOME, 2L, "Salary bonus", LocalDate.now(), 1L);
+        TransactionDto inputDto = new TransactionDto(null, new BigDecimal("500.00"), TransactionType.INCOME, 2L, "Salary bonus", LocalDate.now(), 1L, null);
 
         Transaction savedTransaction = new Transaction(100L, new BigDecimal("500.00"), TransactionType.INCOME, category, "Salary bonus", LocalDate.now(), account);
 
@@ -62,9 +62,9 @@ class TransactionServiceUnitTest {
     void shouldDecreaseAccountBalanceWhenCreatingExpenseTransaction() {
         // Given
         Account account = new Account(1L, "Main Account", new BigDecimal("1000.00"));
-        Category category = new Category(2L, "Food");
+        Category category = new Category(2L, "Food", null);
 
-        TransactionDto inputDto = new TransactionDto(null, new BigDecimal("200.00"), TransactionType.EXPENSE, 2L, "Groceries", LocalDate.now(), 1L);
+        TransactionDto inputDto = new TransactionDto(null, new BigDecimal("200.00"), TransactionType.EXPENSE, 2L, "Groceries", LocalDate.now(), 1L, null);
         Transaction savedTransaction = new Transaction(101L, new BigDecimal("200.00"), TransactionType.EXPENSE, category, "Groceries", LocalDate.now(), account);
 
         when(accountRepository.findById(1L)).thenReturn(Optional.of(account));
@@ -81,7 +81,7 @@ class TransactionServiceUnitTest {
     @Test
     void shouldThrowExceptionWhenAccountNotFoundOnCreate() {
         // Given
-        TransactionDto inputDto = new TransactionDto(null, new BigDecimal("100.00"), TransactionType.INCOME, 2L, "Test", LocalDate.now(), 99L);
+        TransactionDto inputDto = new TransactionDto(null, new BigDecimal("100.00"), TransactionType.INCOME, 2L, "Test", LocalDate.now(), 99L, null);
         when(accountRepository.findById(99L)).thenReturn(Optional.empty());
 
         // When & Then
@@ -96,7 +96,7 @@ class TransactionServiceUnitTest {
     void shouldRevertBalanceAndIncreaseItWhenDeletingExpenseTransaction() {
         // Given
         Account account = new Account(1L, "Main Account", new BigDecimal("800.00"));
-        Category category = new Category(2L, "Food");
+        Category category = new Category(2L, "Food", null);
         Transaction existingExpense = new Transaction(100L, new BigDecimal("200.00"), TransactionType.EXPENSE, category, "Groceries", LocalDate.now(), account);
 
         when(transactionRepository.findById(100L)).thenReturn(Optional.of(existingExpense));

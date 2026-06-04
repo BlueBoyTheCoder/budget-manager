@@ -17,7 +17,7 @@ class CategoryRepositoryTest {
     @Test
     void shouldFindCategoryByNameRegardlessOfCase() {
         // Given
-        Category category = new Category(null, "HealthAndBeauty");
+        Category category = new Category(null, "HealthAndBeauty", null);
         categoryRepository.save(category);
 
         // When

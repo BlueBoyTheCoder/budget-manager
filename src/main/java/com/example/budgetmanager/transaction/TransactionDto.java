@@ -31,4 +31,6 @@ public class TransactionDto {
 
         @NotNull(message = "Account ID is required")
         private Long accountId;
+
+        private String warningMessage;
 }

@@ -32,8 +32,8 @@ class TransactionRepositoryTest {
     @BeforeEach
     void setUp() {
         sharedAccount = accountRepository.save(new Account(null, "Wallet", new BigDecimal("1000.00")));
-        food = categoryRepository.save(new Category(null, "Food"));
-        bills = categoryRepository.save(new Category(null, "Bills"));
+        food = categoryRepository.save(new Category(null, "Food", null));
+        bills = categoryRepository.save(new Category(null, "Bills", null));
 
         Transaction t1 = new Transaction(null, new BigDecimal("50.00"), TransactionType.EXPENSE, food, "Lunch", LocalDate.of(2026, 6, 1), sharedAccount);
         Transaction t2 = new Transaction(null, new BigDecimal("150.00"), TransactionType.EXPENSE, food, "Groceries", LocalDate.of(2026, 6, 3), sharedAccount);

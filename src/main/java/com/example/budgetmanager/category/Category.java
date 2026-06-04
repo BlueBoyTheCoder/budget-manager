@@ -3,6 +3,8 @@ package com.example.budgetmanager.category;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.math.BigDecimal;
+
 @Entity
 @Table(name = "categories")
 @Getter
@@ -17,4 +19,6 @@ public class Category {
 
     @Column(nullable = false, unique = true)
     private String name;
+
+    private BigDecimal budgetLimit;
 }

@@ -28,8 +28,8 @@ class CategoryServiceUnitTest {
     @Test
     void shouldReturnListOfCategoryDtosWhenCategoriesExist() {
         // Given
-        Category food = new Category(1L, "Food");
-        Category rent = new Category(2L, "Rent");
+        Category food = new Category(1L, "Food", null);
+        Category rent = new Category(2L, "Rent", null);
         when(categoryRepository.findAll()).thenReturn(List.of(food, rent));
 
         // When
@@ -64,8 +64,8 @@ class CategoryServiceUnitTest {
     @Test
     void shouldCreateCategorySuccessfullyWhenNameIsUnique() {
         // Given
-        CategoryDto inputDto = new CategoryDto(null, "Transport");
-        Category savedCategory = new Category(10L, "Transport");
+        CategoryDto inputDto = new CategoryDto(null, "Transport", null);
+        Category savedCategory = new Category(10L, "Transport", null);
 
         // Dokładne mockowanie wywołań wewnątrz metody create()
         when(categoryRepository.findByNameIgnoreCase("Transport")).thenReturn(Optional.empty());
@@ -86,10 +86,9 @@ class CategoryServiceUnitTest {
     @Test
     void shouldThrowExceptionWhenCategoryNameAlreadyExists() {
         // Given
-        CategoryDto inputDto = new CategoryDto(null, "FOOD");
-        Category existingCategory = new Category(1L, "Food");
+        CategoryDto inputDto = new CategoryDto(null, "FOOD", null);
+        Category existingCategory = new Category(1L, "Food", null);
 
-        // Mockujemy sytuację, w której baza znajduje już taką kategorię
         when(categoryRepository.findByNameIgnoreCase("FOOD")).thenReturn(Optional.of(existingCategory));
 
         // When & Then
@@ -97,7 +96,7 @@ class CategoryServiceUnitTest {
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessage("Category with name 'FOOD' already exists");
 
-        // WAŻNE: Weryfikujemy, że metoda save NIGDY nie została wywołana (bo rzuciliśmy wyjątek wcześniej)
+        // Verification
         verify(categoryRepository, times(1)).findByNameIgnoreCase("FOOD");
         verify(categoryRepository, never()).save(any(Category.class));
     }

@@ -33,8 +33,8 @@ class CategoryControllerTest {
     void shouldReturnAllCategoriesWithStatus200() throws Exception {
         // Given
         List<CategoryDto> categories = List.of(
-                new CategoryDto(1L, "Food"),
-                new CategoryDto(2L, "Bills")
+                new CategoryDto(1L, "Food", null),
+                new CategoryDto(2L, "Bills", null)
         );
         when(categoryService.getAll()).thenReturn(categories);
 
@@ -50,8 +50,8 @@ class CategoryControllerTest {
     @Test
     void shouldCreateCategoryAndReturnStatus201() throws Exception {
         // Given
-        CategoryDto inputDto = new CategoryDto(null, "Entertainment");
-        CategoryDto savedDto = new CategoryDto(5L, "Entertainment");
+        CategoryDto inputDto = new CategoryDto(null, "Entertainment", null);
+        CategoryDto savedDto = new CategoryDto(5L, "Entertainment", null);
         when(categoryService.create(inputDto)).thenReturn(savedDto);
 
         // When & Then
@@ -66,7 +66,7 @@ class CategoryControllerTest {
     @Test
     void shouldReturnStatus409WhenCategoryAlreadyExistsOnCreate() throws Exception {
         // Given
-        CategoryDto inputDto = new CategoryDto(null, "Food");
+        CategoryDto inputDto = new CategoryDto(null, "Food", null);
         when(categoryService.create(inputDto))
                 .thenThrow(new IllegalStateException("Category with name 'Food' already exists"));
 
@@ -80,13 +80,13 @@ class CategoryControllerTest {
     @Test
     void shouldReturnStatus404WhenCategoryNotFound() throws Exception {
         // Given
-        when(categoryService.create(new CategoryDto(null, "Unknown")))
+        when(categoryService.create(new CategoryDto(null, "Unknown", null)))
                 .thenThrow(new EntityNotFoundException("Category not found"));
 
         // When & Then
         mockMvc.perform(post("/api/categories")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(new CategoryDto(null, "Unknown"))))
+                        .content(objectMapper.writeValueAsString(new CategoryDto(null, "Unknown", null))))
                 .andExpect(status().isNotFound());
     }
 }

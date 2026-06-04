@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -32,7 +33,6 @@ public class TransactionService {
                 .toList();
     }
 
-    @Transactional
     public TransactionDto create(TransactionDto dto) {
         Account account = accountRepository.findById(dto.getAccountId())
                 .orElseThrow(() -> new EntityNotFoundException("Account not found with id: " + dto.getAccountId()));
@@ -40,26 +40,56 @@ public class TransactionService {
         Category category = categoryRepository.findById(dto.getCategoryId())
                 .orElseThrow(() -> new EntityNotFoundException("Category not found with id: " + dto.getCategoryId()));
 
-        // Update Account Balance
-        if (dto.getType() == TransactionType.INCOME) {
-            account.setBalance(account.getBalance().add(dto.getAmount()));
-        } else {
+        if (dto.getType() == TransactionType.EXPENSE) {
             account.setBalance(account.getBalance().subtract(dto.getAmount()));
+        } else {
+            account.setBalance(account.getBalance().add(dto.getAmount()));
         }
         accountRepository.save(account);
 
-        Transaction transaction = new Transaction(
-                null,
-                dto.getAmount(),
-                dto.getType(),
-                category,
-                dto.getDescription(),
-                dto.getTransactionDate(),
-                account
-        );
+        String warning = null;
+        if (dto.getType() == TransactionType.EXPENSE && category.getBudgetLimit() != null) {
 
-        Transaction saved = transactionRepository.save(transaction);
-        return mapToDto(saved);
+            LocalDate transactionDate = dto.getTransactionDate() != null ? dto.getTransactionDate() : LocalDate.now();
+
+            LocalDate startOfTargetMonth = transactionDate.withDayOfMonth(1);
+            LocalDate endOfTargetMonth = transactionDate.withDayOfMonth(transactionDate.lengthOfMonth());
+
+            BigDecimal targetMonthExpenses = transactionRepository
+                    .sumExpensesByCategoryIdAndDateRange(category.getId(), startOfTargetMonth, endOfTargetMonth);
+
+            BigDecimal totalWithNewTransaction = targetMonthExpenses.add(dto.getAmount());
+
+            if (totalWithNewTransaction.compareTo(category.getBudgetLimit()) > 0) {
+                warning = String.format("Warning: Budget limit exceeded for category '%s' in %s %s! Limit: %s, Total with this transaction: %s",
+                        category.getName(),
+                        transactionDate.getMonth(),
+                        transactionDate.getYear(),
+                        category.getBudgetLimit(),
+                        totalWithNewTransaction);
+            }
+        }
+
+        Transaction transaction = new Transaction();
+        transaction.setAmount(dto.getAmount());
+        transaction.setType(dto.getType());
+        transaction.setDescription(dto.getDescription());
+        transaction.setTransactionDate(dto.getTransactionDate() != null ? dto.getTransactionDate() : LocalDate.now());
+        transaction.setAccount(account);
+        transaction.setCategory(category);
+
+        Transaction savedTransaction = transactionRepository.save(transaction);
+
+        return new TransactionDto(
+                savedTransaction.getId(),
+                savedTransaction.getAmount(),
+                savedTransaction.getType(),
+                savedTransaction.getCategory().getId(),
+                savedTransaction.getDescription(),
+                savedTransaction.getTransactionDate(),
+                savedTransaction.getAccount().getId(),
+                warning
+        );
     }
 
     @Transactional
@@ -69,7 +99,6 @@ public class TransactionService {
 
         Account account = transaction.getAccount();
 
-        // Revert Account Balance
         if (transaction.getType() == TransactionType.INCOME) {
             account.setBalance(account.getBalance().subtract(transaction.getAmount()));
         } else {
@@ -88,7 +117,8 @@ public class TransactionService {
                 t.getCategory().getId(),
                 t.getDescription(),
                 t.getTransactionDate(),
-                t.getAccount().getId()
+                t.getAccount().getId(),
+                null
         );
     }
 }

@@ -12,7 +12,7 @@ public class CategoryService {
 
     public List<CategoryDto> getAll() {
         return repository.findAll().stream()
-                .map(c -> new CategoryDto(c.getId(), c.getName()))
+                .map(c -> new CategoryDto(c.getId(), c.getName(), c.getBudgetLimit()))
                 .toList();
     }
 
@@ -21,8 +21,8 @@ public class CategoryService {
             throw new IllegalStateException("Category with name '" + dto.name() + "' already exists");
         }
 
-        Category category = new Category(null, dto.name());
+        Category category = new Category(null, dto.name(), dto.budgetLimit());
         Category saved = repository.save(category);
-        return new CategoryDto(saved.getId(), saved.getName());
+        return new CategoryDto(saved.getId(), saved.getName(), saved.getBudgetLimit());
     }
 }

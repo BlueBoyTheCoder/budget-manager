@@ -34,9 +34,10 @@ class TransactionControllerTest {
     void shouldReturnAllTransactionsWithStatus200() throws Exception {
         // Given
         List<TransactionDto> transactions = List.of(
-                new TransactionDto(1L, new BigDecimal("150.00"), TransactionType.EXPENSE, 2L, "Groceries", LocalDate.now(), 3L)
+                new TransactionDto(1L, new BigDecimal("150.00"), TransactionType.EXPENSE, 2L, "Groceries", LocalDate.now(), 3L, null)
         );
-        when(transactionService.getFilteredTransactions(any(), any(), any())).thenReturn(transactions);
+
+        when(transactionService.getFilteredTransactions(null, null, null)).thenReturn(transactions);
 
         // When & Then
         mockMvc.perform(get("/api/transactions")
@@ -52,9 +53,10 @@ class TransactionControllerTest {
     void shouldReturnFilteredTransactionsWithStatus200() throws Exception {
         // Given
         List<TransactionDto> transactions = List.of(
-                new TransactionDto(1L, new BigDecimal("2000.00"), TransactionType.INCOME, 2L, "Salary", LocalDate.now(), 3L)
+                new TransactionDto(1L, new BigDecimal("2000.00"), TransactionType.INCOME, 2L, "Salary", LocalDate.now(), 3L, null)
         );
-        when(transactionService.getFilteredTransactions(any(), any(), eq("Salary"))).thenReturn(transactions);
+
+        when(transactionService.getFilteredTransactions(null, null, "Salary")).thenReturn(transactions);
 
         // When & Then
         mockMvc.perform(get("/api/transactions")
@@ -68,8 +70,8 @@ class TransactionControllerTest {
     @Test
     void shouldCreateTransactionAndReturnStatus201() throws Exception {
         // Given
-        TransactionDto inputDto = new TransactionDto(null, new BigDecimal("50.00"), TransactionType.EXPENSE, 2L, "Coffee", LocalDate.now(), 3L);
-        TransactionDto savedDto = new TransactionDto(10L, new BigDecimal("50.00"), TransactionType.EXPENSE, 2L, "Coffee", LocalDate.now(), 3L);
+        TransactionDto inputDto = new TransactionDto(null, new BigDecimal("50.00"), TransactionType.EXPENSE, 2L, "Coffee", LocalDate.now(), 3L, null);
+        TransactionDto savedDto = new TransactionDto(10L, new BigDecimal("50.00"), TransactionType.EXPENSE, 2L, "Coffee", LocalDate.now(), 3L, null);
         when(transactionService.create(any(TransactionDto.class))).thenReturn(savedDto);
 
         // When & Then
@@ -97,7 +99,7 @@ class TransactionControllerTest {
     @Test
     void shouldReturnStatus404WhenAccountOrCategoryNotFoundOnCreate() throws Exception {
         // Given
-        TransactionDto inputDto = new TransactionDto(null, new BigDecimal("10.00"), TransactionType.EXPENSE, 99L, "Test", LocalDate.now(), 3L);
+        TransactionDto inputDto = new TransactionDto(null, new BigDecimal("10.00"), TransactionType.EXPENSE, 99L, "Test", LocalDate.now(), 3L, null);
         when(transactionService.create(any(TransactionDto.class)))
                 .thenThrow(new EntityNotFoundException("Category not found with id: 99"));
 
@@ -130,7 +132,8 @@ class TransactionControllerTest {
                 2L,
                 "Invalid Amount Test",
                 LocalDate.now(),
-                3L
+                3L,
+                null
         );
 
         // When & Then
@@ -141,5 +144,23 @@ class TransactionControllerTest {
 
         // Verification
         verify(transactionService, never()).create(any());
+    }
+
+    @Test
+    void shouldCreateTransactionWithWarningWhenBudgetLimitIsExceeded() throws Exception {
+        // Given
+        String warningMsg = "Warning: Budget limit exceeded for category 'Food'!";
+        TransactionDto inputDto = new TransactionDto(null, new BigDecimal("600.00"), TransactionType.EXPENSE, 1L, "Big Party Shop", LocalDate.now(), 2L, null);
+        TransactionDto savedDtoWithWarning = new TransactionDto(15L, new BigDecimal("600.00"), TransactionType.EXPENSE, 1L, "Big Party Shop", LocalDate.now(), 2L, warningMsg);
+
+        when(transactionService.create(any(TransactionDto.class))).thenReturn(savedDtoWithWarning);
+
+        // When & Then
+        mockMvc.perform(post("/api/transactions")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(inputDto)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.id").value(15L))
+                .andExpect(jsonPath("$.warningMessage").value(warningMsg));
     }
 }

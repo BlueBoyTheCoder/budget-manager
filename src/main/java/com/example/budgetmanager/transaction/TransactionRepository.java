@@ -39,5 +39,15 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
             @Param("categoryName") String categoryName
     );
 
+    @Query("SELECT COALESCE(SUM(t.amount), 0) FROM Transaction t " +
+            "WHERE t.category.id = :categoryId " +
+            "AND t.type = com.example.budgetmanager.transaction.TransactionType.EXPENSE " +
+            "AND t.transactionDate BETWEEN :startDate AND :endDate")
+    BigDecimal sumExpensesByCategoryIdAndDateRange(
+            @Param("categoryId") Long categoryId,
+            @Param("startDate") LocalDate startDate,
+            @Param("endDate") LocalDate endDate
+    );
+
     List<Transaction> findByAccountId(Long accountId);
 }

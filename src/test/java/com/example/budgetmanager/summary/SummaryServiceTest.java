@@ -49,7 +49,7 @@ class SummaryServiceTest {
     @Test
     void shouldHandleSummaryWithOnlyExpenses() {
         // Given
-        Category utilities = categoryRepository.save(new Category(null, "Utilities"));
+        Category utilities = categoryRepository.save(new Category(null, "Utilities", null));
         Transaction exp = new Transaction(null, new BigDecimal("120.50"), TransactionType.EXPENSE, utilities, "Electricity", LocalDate.now(), sharedAccount);
         transactionRepository.save(exp);
 
@@ -66,7 +66,7 @@ class SummaryServiceTest {
     @Test
     void shouldMaintainPrecisePrecisionForDecimalValues() {
         // Given
-        Category precisionCat = categoryRepository.save(new Category(null, "Small Expenses"));
+        Category precisionCat = categoryRepository.save(new Category(null, "Small Expenses", null));
         Transaction exp1 = new Transaction(null, new BigDecimal("10.003"), TransactionType.EXPENSE, precisionCat, "Cent 1", LocalDate.now(), sharedAccount);
         Transaction exp2 = new Transaction(null, new BigDecimal("20.007"), TransactionType.EXPENSE, precisionCat, "Cent 2", LocalDate.now(), sharedAccount);
         transactionRepository.saveAll(List.of(exp1, exp2));
@@ -81,9 +81,9 @@ class SummaryServiceTest {
     @Test
     void shouldCorrectlyCalculateSummaryAndGroupExpensesByCategory() {
         // Given
-        Category food = categoryRepository.save(new Category(null, "Food"));
-        Category transport = categoryRepository.save(new Category(null, "Transport"));
-        Category incomeCat = categoryRepository.save(new Category(null, "Income"));
+        Category food = categoryRepository.save(new Category(null, "Food", null));
+        Category transport = categoryRepository.save(new Category(null, "Transport", null));
+        Category incomeCat = categoryRepository.save(new Category(null, "Income", null));
 
         Transaction inc1 = new Transaction(null, new BigDecimal("2000.00"), TransactionType.INCOME, incomeCat, "Salary", LocalDate.now(), sharedAccount);
         Transaction exp1 = new Transaction(null, new BigDecimal("150.00"), TransactionType.EXPENSE, food, "Groceries", LocalDate.now(), sharedAccount);

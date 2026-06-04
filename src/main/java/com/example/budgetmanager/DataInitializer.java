@@ -36,9 +36,9 @@ public class DataInitializer implements CommandLineRunner {
             AccountDto savingsAccount = accountService.createAccount(new AccountDto(null, "Savings Account", new BigDecimal("10000.00")));
 
             // Seed Categories
-            CategoryDto food = categoryService.create(new CategoryDto(null, "Food"));
-            CategoryDto transport = categoryService.create(new CategoryDto(null, "Transport"));
-            CategoryDto salary = categoryService.create(new CategoryDto(null, "Salary"));
+            CategoryDto food = categoryService.create(new CategoryDto(null, "Food", null));
+            CategoryDto transport = categoryService.create(new CategoryDto(null, "Transport", null));
+            CategoryDto salary = categoryService.create(new CategoryDto(null, "Salary", null));
 
             // Seed Transactions
             transactionService.create(new TransactionDto(
@@ -48,7 +48,8 @@ public class DataInitializer implements CommandLineRunner {
                     salary.id(),
                     "Bonus",
                     LocalDate.now(),
-                    mainAccount.getId()
+                    mainAccount.getId(),
+                    null
             ));
 
             transactionService.create(new TransactionDto(
@@ -58,7 +59,8 @@ public class DataInitializer implements CommandLineRunner {
                     food.id(),
                     "Weekly dinner",
                     LocalDate.now(),
-                    mainAccount.getId()
+                    mainAccount.getId(),
+                    null
             ));
 
             System.out.println(">> Database successfully seeded with demo data!");
