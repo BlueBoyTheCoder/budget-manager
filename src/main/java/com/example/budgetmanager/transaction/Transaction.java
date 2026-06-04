@@ -3,6 +3,7 @@ package com.example.budgetmanager.transaction;
 import com.example.budgetmanager.account.Account;
 import com.example.budgetmanager.category.Category; // Import nowej encji
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Positive;
 import lombok.*;
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -20,6 +21,7 @@ public class Transaction {
     private Long id;
 
     @Column(nullable = false)
+    @Positive
     private BigDecimal amount;
 
     @Enumerated(EnumType.STRING)

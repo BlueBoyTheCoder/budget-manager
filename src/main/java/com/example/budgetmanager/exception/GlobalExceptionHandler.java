@@ -34,4 +34,12 @@ public class GlobalExceptionHandler {
         error.put("error", ex.getMessage());
         return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
     }
+
+    @ExceptionHandler(Exception.class) // Catches all unhandled exceptions including RuntimeException
+    public ResponseEntity<String> handleAllUnhandledExceptions(Exception ex) {
+        // Return clean HTTP 500 Internal Server Error
+        return ResponseEntity
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body("An unexpected error occurred: " + ex.getMessage());
+    }
 }

@@ -23,71 +23,79 @@ class SummaryServiceTest {
 
     @Autowired
     private TransactionRepository transactionRepository;
-
     @Autowired
     private AccountRepository accountRepository;
-
     @Autowired
     private CategoryRepository categoryRepository;
 
     private SummaryService summaryService;
+    private Account sharedAccount;
 
     @BeforeEach
     void setUp() {
         summaryService = new SummaryService(transactionRepository);
+        sharedAccount = accountRepository.save(new Account(null, "Test Account", new BigDecimal("1000.00")));
     }
 
     @Test
     void shouldReturnEmptySummaryWhenNoTransactionsExist() {
-        // When
         SummaryDto summary = summaryService.getSummary();
 
-        // Then
         assertThat(summary.getTotalIncome()).isEqualByComparingTo(BigDecimal.ZERO);
         assertThat(summary.getTotalExpenses()).isEqualByComparingTo(BigDecimal.ZERO);
         assertThat(summary.getExpensesByCategory()).isEmpty();
     }
 
     @Test
-    void shouldCorrectlyCalculateSummaryAndGroupExpensesByCategory() {
+    void shouldHandleSummaryWithOnlyExpenses() {
         // Given
-        Account account = new Account(null, "Main Account", new BigDecimal("5000.00"));
-        accountRepository.save(account);
-
-        Category food = new Category(null, "Food");
-        Category transport = new Category(null, "Transport");
-        Category income = new Category(null, "Income");
-        categoryRepository.saveAll(List.of(food, transport, income));
-
-        Transaction inc1 = new Transaction(null, new BigDecimal("2000.00"), TransactionType.INCOME, income, "Salary", LocalDate.now(), account);
-        Transaction inc2 = new Transaction(null, new BigDecimal("500.00"), TransactionType.INCOME, income, "Bonus", LocalDate.now(), account);
-
-        Transaction exp1 = new Transaction(null, new BigDecimal("150.00"), TransactionType.EXPENSE, food, "Groceries", LocalDate.now(), account);
-        Transaction exp2 = new Transaction(null, new BigDecimal("50.00"), TransactionType.EXPENSE, food, "Dinner", LocalDate.now(), account);
-        Transaction exp3 = new Transaction(null, new BigDecimal("300.00"), TransactionType.EXPENSE, transport, "Fuel", LocalDate.now(), account);
-
-        transactionRepository.saveAll(List.of(inc1, inc2, exp1, exp2, exp3));
+        Category utilities = categoryRepository.save(new Category(null, "Utilities"));
+        Transaction exp = new Transaction(null, new BigDecimal("120.50"), TransactionType.EXPENSE, utilities, "Electricity", LocalDate.now(), sharedAccount);
+        transactionRepository.save(exp);
 
         // When
         SummaryDto summary = summaryService.getSummary();
 
         // Then
-        assertThat(summary.getTotalIncome()).isEqualByComparingTo(new BigDecimal("2500.00"));
-        assertThat(summary.getTotalExpenses()).isEqualByComparingTo(new BigDecimal("500.00"));
+        assertThat(summary.getTotalIncome()).isEqualByComparingTo(BigDecimal.ZERO);
+        assertThat(summary.getTotalExpenses()).isEqualByComparingTo(new BigDecimal("120.50"));
+        assertThat(summary.getExpensesByCategory()).hasSize(1);
+        assertThat(summary.getExpensesByCategory().get(0).totalExpenses()).isEqualByComparingTo(new BigDecimal("120.50"));
+    }
 
-        List<CategoryOverviewDto> categoryOverviews = summary.getExpensesByCategory();
-        assertThat(categoryOverviews).hasSize(2);
+    @Test
+    void shouldMaintainPrecisePrecisionForDecimalValues() {
+        // Given
+        Category precisionCat = categoryRepository.save(new Category(null, "Small Expenses"));
+        Transaction exp1 = new Transaction(null, new BigDecimal("10.003"), TransactionType.EXPENSE, precisionCat, "Cent 1", LocalDate.now(), sharedAccount);
+        Transaction exp2 = new Transaction(null, new BigDecimal("20.007"), TransactionType.EXPENSE, precisionCat, "Cent 2", LocalDate.now(), sharedAccount);
+        transactionRepository.saveAll(List.of(exp1, exp2));
 
-        CategoryOverviewDto foodOverview = categoryOverviews.stream()
-                .filter(c -> c.categoryName().equals("Food"))
-                .findFirst()
-                .orElseThrow();
-        assertThat(foodOverview.totalExpenses()).isEqualByComparingTo(new BigDecimal("200.00"));
+        // When
+        SummaryDto summary = summaryService.getSummary();
 
-        CategoryOverviewDto transportOverview = categoryOverviews.stream()
-                .filter(c -> c.categoryName().equals("Transport"))
-                .findFirst()
-                .orElseThrow();
-        assertThat(transportOverview.totalExpenses()).isEqualByComparingTo(new BigDecimal("300.00"));
+        // Then
+        assertThat(summary.getTotalExpenses()).isEqualByComparingTo(new BigDecimal("30.010"));
+    }
+
+    @Test
+    void shouldCorrectlyCalculateSummaryAndGroupExpensesByCategory() {
+        // Given
+        Category food = categoryRepository.save(new Category(null, "Food"));
+        Category transport = categoryRepository.save(new Category(null, "Transport"));
+        Category incomeCat = categoryRepository.save(new Category(null, "Income"));
+
+        Transaction inc1 = new Transaction(null, new BigDecimal("2000.00"), TransactionType.INCOME, incomeCat, "Salary", LocalDate.now(), sharedAccount);
+        Transaction exp1 = new Transaction(null, new BigDecimal("150.00"), TransactionType.EXPENSE, food, "Groceries", LocalDate.now(), sharedAccount);
+        Transaction exp2 = new Transaction(null, new BigDecimal("300.00"), TransactionType.EXPENSE, transport, "Fuel", LocalDate.now(), sharedAccount);
+        transactionRepository.saveAll(List.of(inc1, exp1, exp2));
+
+        // When
+        SummaryDto summary = summaryService.getSummary();
+
+        // Then
+        assertThat(summary.getTotalIncome()).isEqualByComparingTo(new BigDecimal("2000.00"));
+        assertThat(summary.getTotalExpenses()).isEqualByComparingTo(new BigDecimal("450.00"));
+        assertThat(summary.getExpensesByCategory()).hasSize(2);
     }
 }
