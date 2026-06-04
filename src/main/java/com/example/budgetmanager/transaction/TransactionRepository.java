@@ -30,9 +30,9 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
 
 
     @Query("SELECT t FROM Transaction t WHERE " +
-            "(:fromDate IS NULL OR t.transactionDate >= :fromDate) AND " +
-            "(:toDate IS NULL OR t.transactionDate <= :toDate) AND " +
-            "(:categoryName IS NULL OR LOWER(t.category.name) = LOWER(:categoryName))")
+            "(t.transactionDate >= COALESCE(:fromDate, t.transactionDate)) AND " +
+            "(t.transactionDate <= COALESCE(:toDate, t.transactionDate)) AND " +
+            "(:categoryName IS NULL OR LOWER(t.category.name) = LOWER(CAST(:categoryName AS string)))")
     List<Transaction> findFilteredTransactions(
             @Param("fromDate") LocalDate fromDate,
             @Param("toDate") LocalDate toDate,
