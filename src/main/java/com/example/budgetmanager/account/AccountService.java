@@ -1,5 +1,6 @@
 package com.example.budgetmanager.account;
 
+import com.example.budgetmanager.transaction.Transaction;
 import com.example.budgetmanager.transaction.TransactionRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -40,5 +41,27 @@ public class AccountService {
         }
 
         accountRepository.delete(account);
+    }
+
+    public String exportTransactionsToCsv(Long accountId) {
+        if (!accountRepository.existsById(accountId)) {
+            throw new EntityNotFoundException("Account not found with ID: " + accountId);
+        }
+        List<Transaction> transactions = transactionRepository.findByAccountId(accountId);
+
+        StringBuilder csvBuilder = new StringBuilder();
+        csvBuilder.append("ID;Amount;Type;Description;Date;Category ID\n");
+
+        for (Transaction t : transactions) {
+            csvBuilder.append(t.getId()).append(";")
+                    .append(t.getAmount()).append(";")
+                    .append(t.getType()).append(";")
+                    .append(t.getDescription() != null ? t.getDescription() : "").append(";")
+                    .append(t.getTransactionDate()).append(";")
+                    .append(t.getCategory() != null ? t.getCategory().getId() : "")
+                    .append("\n");
+        }
+
+        return csvBuilder.toString();
     }
 }

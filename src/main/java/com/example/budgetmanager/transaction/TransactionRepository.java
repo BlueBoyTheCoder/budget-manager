@@ -38,4 +38,6 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
             @Param("toDate") LocalDate toDate,
             @Param("categoryName") String categoryName
     );
+
+    List<Transaction> findByAccountId(Long accountId);
 }

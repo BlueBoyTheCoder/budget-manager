@@ -127,4 +127,40 @@ class AccountControllerTest {
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound());
     }
+
+    @Test
+    void shouldExportTransactionsToCsvWithStatus200() throws Exception {
+        // Given
+        Long accountId = 1L;
+        String mockCsv = "ID;Amount;Type;Description;Date;Category ID\n1;150.00;EXPENSE;Groceries;2026-06-04;3\n";
+        when(accountService.exportTransactionsToCsv(accountId)).thenReturn(mockCsv);
+
+        // When & Then
+        mockMvc.perform(get("/api/accounts/1/transactions/export"))
+                .andExpect(status().isOk())
+                .andExpect(result -> {
+                    String contentType = result.getResponse().getContentType();
+                    assert contentType != null && contentType.contains("text/csv");
+                })
+                .andExpect(result -> {
+                    String header = result.getResponse().getHeader("Content-Disposition");
+                    assert header != null && header.contains("attachment; filename=\"transactions_account_1.csv\"");
+                })
+                .andExpect(result -> {
+                    String content = result.getResponse().getContentAsString();
+                    assert content.equals(mockCsv);
+                });
+    }
+
+    @Test
+    void shouldReturnStatus404WhenExportingTransactionsForNonExistingAccount() throws Exception {
+        // Given
+        Long nonExistingId = 99L;
+        when(accountService.exportTransactionsToCsv(nonExistingId))
+                .thenThrow(new EntityNotFoundException("Account not found with ID: 99"));
+
+        // When & Then
+        mockMvc.perform(get("/api/accounts/99/transactions/export"))
+                .andExpect(status().isNotFound());
+    }
 }
