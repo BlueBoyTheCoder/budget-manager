@@ -1,77 +1,87 @@
-# Budget Manager API
+# Budget Manager API - Setup Instructions
 
-A Spring Boot RESTful API designed to manage personal finances, track account balances, categorize transactions, and generate real-time financial summaries.
+A Spring Boot RESTful API designed to manage personal finances.
 
+## What it does
+This project provides a comprehensive REST API to handle personal financial data, automatically managing balance calculations and budget tracking. The system is split into specialized modules, allowing you to fully manage and query your resources through the following endpoint groups:
+
+### 1. Accounts (`/api/accounts`)
+* **Get All Accounts (`GET`):** Retrieves a list of all bank accounts along with their current balances.
+* **Get Account by ID (`GET`):** Fetches detailed information for a specific account using its unique identifier.
+* **Create Account (`POST`):** Registers a new account (e.g., Main, Savings) with an initial balance.
+* **Delete Account (`DELETE`):** Removes an account completely from the system.
+* **Export Transactions (`GET`):** Generates and downloads a custom CSV file containing the full transaction history for a specific account.
+
+### 2. Categories (`/api/categories`)
+* **Get All Categories (`GET`):** Lists all available financial categories used to classify budgets.
+* **Create Category (`POST`):** Adds a new custom category (including configuration for monthly spending thresholds or budget limits).
+
+### 3. Transactions (`/api/transactions`)
+* **Get Filtered Transactions (`GET`):** Dynamically searches and filters through financial logs using parameters such as start date (`from`), end date (`to`), or a specific `categoryName`.
+* **Create Transaction (`POST`):** Logs a new income or expense, which automatically triggers balance recalculations across the affected account.
+* **Delete Transaction (`DELETE`):** Removes an individual transaction record and reverts its impact on the account balance.
+
+### 4. Summary (`/api/summary`)
+* **Get Summary (`GET`):** Generates a real-time financial dashboard overview, aggregating data across accounts and flagging active budget warnings.
 ## Prerequisites
 
-Before running the application, ensure you have the following installed:
 * **Java 21** or higher
-* **Maven 3.9+**
-* **Docker** & **Docker Compose** 
+* **Docker** & **Docker Compose**
 
 ---
 
-## Initial Configuration
+## Running the Database (PostgreSQL)
 
-### 1. Database Setup
-The application uses PostgreSQL running inside a Docker container. Spin up the database instantly using the provided Docker Compose file:
-
+Before starting the application, spin up the database inside a Docker container:
 ```bash
 docker-compose up -d
 ```
-
-### 2. Application Properties
-Database credentials and settings are pre-configured in `src/main/resources/application.yml`.
-
-*Note: If you want to enable or disable the automatic generation of demo data on startup, toggle the `app.seed-data` property (`true`/`false`) inside that file.*
 
 ---
 
 ## Running the Application
 
-You can build and start the Spring Boot application using the Maven wrapper.
+Choose one of the following commands in your terminal based on how you want to initialize your data:
 
-### Option 1: Run with Default Settings
-Starts the API with the default configuration from `application.yml`:
-
+### Option A: Standard Run
+Starts the application while keeping your existing database data intact:
 ```bash
 ./mvnw clean spring-boot:run
 ```
 
-### Option 2: Run and Seed Demo Data Automatically
-If you want to automatically populate the database with sample accounts, categories, and transactions on startup without modifying the configuration file, run:
-
+### Option B: Run and Seed Demo Data
+Populates the database with sample accounts and transactions **only if the database is currently empty**:
 ```bash
 ./mvnw clean spring-boot:run -Dspring-boot.run.arguments="--app.seed-data=true"
 ```
 
-The server will start locally at: `http://localhost:8080`
+### Option C: Clear Database and Keep it Empty
+Drops all existing tables and recreates a completely fresh, empty database schema with zero data:
+```bash
+./mvnw clean spring-boot:run -Dspring-boot.run.arguments="--spring.jpa.hibernate.ddl-auto=create --app.seed-data=false"
+```
+
+### Option D: Clear Database, Run and Seed Demo Data
+Drops all existing tables, recreates the database schema from scratch, and automatically populates it with fresh test data:
+```bash
+./mvnw clean spring-boot:run -Dspring-boot.run.arguments="--spring.jpa.hibernate.ddl-auto=create --app.seed-data=true"
+```
 
 ---
 
-## API Documentation & Testing
+## API Testing & Documentation
 
-Once the application is running, you can explore and test all REST endpoints via the Swagger UI interface:
+Once started, the application is available at: 'http://localhost:8080'
 
-👉 **Swagger UI URL:** `http://localhost:8080/swagger-ui/index.html`
+* **Swagger UI (Interactive API Testing):** 'http://localhost:8080/swagger-ui/index.html'
 
-*Note: When demo data seeding is enabled, the database will be automatically populated with sample accounts, categories, and transactions so you can start testing immediately.*
+---
 
-## Running the Tests
+## Running the Test Suite
 
-The project includes a comprehensive test suite covering all layers of the application (Unit, Repository Integration Slice, and WebMvc Controller tests). You can run them via the command line or directly inside your IDE.
-
-### Run Tests via Maven Wrapper
-To execute the entire test suite and generate an execution report, run the following command in the project's root directory:
-
+To execute the entire suite of unit and integration tests, run:
 ```bash
 ./mvnw clean test
 ```
 
-### Run Tests in IntelliJ IDEA
-1. Open the project tool window (`Alt + 1` / `Cmd + 1`).
-2. Navigate to the `src/test/java` directory.
-3. Right-click on the `java` package folder.
-4. Select **Run 'All Tests'** (with the green double-play icon).
-
-*Note: Slice tests using `@DataJpaTest` use an optimized, lightweight embedded context, meaning you do not need to have the Docker PostgreSQL container running just to execute the test suite.*
+*Note: All tests (including Repository Integration Slice tests using \'@DataJpaTest\') use an isolated, in-memory embedded database context. This means you do NOT need to have the Docker container running to execute and pass the test suite.*

@@ -36,34 +36,64 @@ public class DataInitializer implements CommandLineRunner {
             AccountDto savingsAccount = accountService.createAccount(new AccountDto(null, "Savings Account", new BigDecimal("10000.00")));
 
             // Seed Categories
-            CategoryDto food = categoryService.create(new CategoryDto(null, "Food", null));
+            CategoryDto food = categoryService.create(new CategoryDto(null, "Food", new BigDecimal("600.00")));
             CategoryDto transport = categoryService.create(new CategoryDto(null, "Transport", null));
             CategoryDto salary = categoryService.create(new CategoryDto(null, "Salary", null));
+            CategoryDto entertainment = categoryService.create(new CategoryDto(null, "Entertainment", new BigDecimal("300.00")));
+            CategoryDto utilities = categoryService.create(new CategoryDto(null, "Utilities", null));
 
-            // Seed Transactions
             transactionService.create(new TransactionDto(
-                    null,
-                    new BigDecimal("1500.00"),
-                    TransactionType.INCOME,
-                    salary.id(),
-                    "Bonus",
-                    LocalDate.now(),
-                    mainAccount.getId(),
-                    null
+                    null, new BigDecimal("4500.00"), TransactionType.INCOME, salary.id(),
+                    "Monthly Salary", LocalDate.now().minusDays(5), mainAccount.getId(), null
             ));
 
             transactionService.create(new TransactionDto(
-                    null,
-                    new BigDecimal("120.00"),
-                    TransactionType.EXPENSE,
-                    food.id(),
-                    "Weekly dinner",
-                    LocalDate.now(),
-                    mainAccount.getId(),
-                    null
+                    null, new BigDecimal("1500.00"), TransactionType.INCOME, salary.id(),
+                    "Quarterly Bonus", LocalDate.now().minusDays(2), mainAccount.getId(), null
             ));
 
-            System.out.println(">> Database successfully seeded with demo data!");
+            transactionService.create(new TransactionDto(
+                    null, new BigDecimal("120.00"), TransactionType.EXPENSE, food.id(),
+                    "Weekly grocery shopping", LocalDate.now().minusDays(4), mainAccount.getId(), null
+            ));
+            transactionService.create(new TransactionDto(
+                    null, new BigDecimal("45.50"), TransactionType.EXPENSE, food.id(),
+                    "UberEats dinner", LocalDate.now().minusDays(1), mainAccount.getId(), null
+            ));
+
+            transactionService.create(new TransactionDto(
+                    null, new BigDecimal("250.00"), TransactionType.EXPENSE, transport.id(),
+                    "Monthly public transport pass", LocalDate.now().minusDays(4), mainAccount.getId(), null
+            ));
+            transactionService.create(new TransactionDto(
+                    null, new BigDecimal("80.00"), TransactionType.EXPENSE, transport.id(),
+                    "Fuel", LocalDate.now(), mainAccount.getId(), null
+            ));
+
+            transactionService.create(new TransactionDto(
+                    null, new BigDecimal("350.00"), TransactionType.EXPENSE, utilities.id(),
+                    "Electricity bill", LocalDate.now().minusDays(3), mainAccount.getId(), null
+            ));
+            transactionService.create(new TransactionDto(
+                    null, new BigDecimal("60.00"), TransactionType.EXPENSE, utilities.id(),
+                    "Internet subscription", LocalDate.now().minusDays(3), mainAccount.getId(), null
+            ));
+
+            transactionService.create(new TransactionDto(
+                    null, new BigDecimal("55.00"), TransactionType.EXPENSE, entertainment.id(),
+                    "Netflix subscription", LocalDate.now().minusDays(2), mainAccount.getId(), null
+            ));
+            transactionService.create(new TransactionDto(
+                    null, new BigDecimal("260.00"), TransactionType.EXPENSE, entertainment.id(),
+                    "Concert ticket", LocalDate.now(), mainAccount.getId(), null
+            ));
+
+            transactionService.create(new TransactionDto(
+                    null, new BigDecimal("1000.00"), TransactionType.INCOME, salary.id(),
+                    "Transfer from regular savings", LocalDate.now().minusDays(1), savingsAccount.getId(), null
+            ));
+
+            System.out.println(">> Database successfully seeded!");
         }
     }
 }

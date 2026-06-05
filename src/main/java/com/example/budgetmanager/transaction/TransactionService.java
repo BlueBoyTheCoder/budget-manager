@@ -21,12 +21,6 @@ public class TransactionService {
     private final AccountRepository accountRepository;
     private final CategoryRepository categoryRepository;
 
-    public List<TransactionDto> getAllTransactions() {
-        return transactionRepository.findAll().stream()
-                .map(this::mapToDto)
-                .toList();
-    }
-
     public List<TransactionDto> getFilteredTransactions(LocalDate from, LocalDate to, String categoryName) {
         return transactionRepository.findFilteredTransactions(from, to, categoryName).stream()
                 .map(this::mapToDto)
